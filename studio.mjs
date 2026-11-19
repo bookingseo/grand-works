@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, writeFile, lstat, mkdtemp, rename, rm, realpath } from "node:fs/promises";
 import { join, posix, sep } from "node:path";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 const root=import.meta.dirname, gamesDir=join(root,"games");
 const slugPattern=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const escapeHtml=s=>s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
@@ -61,14 +62,31 @@ async function build(files){
     try{await rename(staging,target);}catch(e){if(!["EEXIST","ENOTEMPTY"].includes(e.code))throw e;
       for(const [name,expected] of files){if(!(await readFile(join(target,name))).equals(expected))throw Error("Damaged previous build: "+name);}
     }
-    console.log(target);
+    return target;
   }finally{await rm(staging,{recursive:true,force:true});}
+}
+async function stage(files){
+  execFileSync(process.execPath,["--test","tests/works.test.mjs"],{cwd:root,stdio:"inherit"});
+  const output=await build(files), docs=join(root,"docs");
+  const transaction=await mkdtemp(join(root,".stage-"));
+  const previous=join(transaction,"previous"), next=join(transaction,"next");
+  const {cp}=await import("node:fs/promises");
+  try{
+    await cp(output,next,{recursive:true});
+    try{await rename(docs,previous);}catch(e){if(e.code!=="ENOENT")throw e;}
+    try{await rename(next,docs);}catch(e){
+      try{await rename(previous,docs);}catch(restore){if(restore.code!=="ENOENT")throw restore;}
+      throw e;
+    }
+  }finally{await rm(transaction,{recursive:true,force:true});}
+  console.log(docs);
 }
 try{
   const [cmd,slug,...title]=process.argv.slice(2);
   if(cmd==="new")await create(slug,title.join(" "));
-  else if(cmd==="check"||cmd==="build"){const result=await bundle();
-    if(cmd==="build")await build(result.files);
+  else if(["check","build","stage"].includes(cmd)){const result=await bundle();
+    if(cmd==="build")console.log(await build(result.files));
+    else if(cmd==="stage")await stage(result.files);
     else console.log(result.catalog.map(game=>game.slug).join(", ")+" · "+result.files.size+" files");
-  }else throw Error("Use new <slug> <title>, check, or build");
+  }else throw Error("Use new <slug> <title>, check, build, or stage");
 }catch(e){console.error(e.message);process.exitCode=1;}

@@ -1,0 +1,17 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e9e6d6"><title>Đại Công Trường Xưởng · Grand Works Studio</title><script src="catalog.js" defer></script><style>
+:root{--ink:#1d3332;--paper:#efeada;color:var(--ink);background:var(--paper);font:16px/1.5 system-ui,sans-serif}*{box-sizing:border-box}main{max-width:1180px;margin:auto;padding:1rem clamp(.5rem,3vw,2rem) 3rem}header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid;padding-bottom:.6rem}h1{font:900 clamp(2.3rem,6vw,5.5rem)/1 Impact,"Arial Narrow",sans-serif;letter-spacing:-.045em;margin:.3rem 0}select{min-height:44px;font:inherit;background:var(--paper);color:inherit;padding:.35rem;border:1px solid}section{margin-top:1.5rem}article{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(210px,1fr);gap:clamp(1rem,4vw,3.5rem);align-items:center;padding:1.4rem 0;border-bottom:1px solid}article img{width:100%;display:block;border:1px solid #59675a}h2{font:700 clamp(1.7rem,4vw,3rem)/1.02 Georgia,serif;margin:.3rem 0}article p{max-width:36ch}a{color:inherit}article .play{display:inline-block;background:#a33420;color:white;padding:.65rem 1.1rem;font-weight:750;text-decoration:none}a:focus-visible,select:focus-visible{outline:3px solid #b24c24;outline-offset:3px}@media(max-width:620px){article{grid-template-columns:1fr;gap:.5rem}section{margin-top:.5rem}header{gap:.7rem}}
+</style></head><body><main><header><h1 id="name">Đại Công Trường Xưởng</h1><select id="lang" aria-label="Language / Ngôn ngữ"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></header><section id="games" aria-label="Games"></section></main>
+<script>addEventListener("DOMContentLoaded",()=>{
+const select=document.getElementById("lang");
+let lang=navigator.language.startsWith("vi")?"vi":"en";
+try{const saved=localStorage.getItem("grandworks.locale");if(["en","vi"].includes(saved))lang=saved;}catch{}
+function draw(){document.documentElement.lang=lang;select.value=lang;
+const name=lang==="vi"?"Đại Công Trường Xưởng":"Grand Works Studio";document.title=name;document.getElementById("name").textContent=name;
+document.getElementById("games").replaceChildren(...catalog.map(game=>{
+const row=document.createElement("article"),link=document.createElement("a"),pic=document.createElement("img"),body=document.createElement("div"),h=document.createElement("h2"),p=document.createElement("p"),play=document.createElement("a");
+const url="games/"+game.slug+"/index.html?lang="+lang;
+link.href=url;link.setAttribute("aria-label",game.title[lang]);pic.src="games/"+game.slug+"/"+game.cover;pic.alt="";link.append(pic);
+h.textContent=game.title[lang];p.textContent=game.blurb[lang];play.textContent=lang==="vi"?"Vào chơi":"Play game";play.href=url;play.className="play";
+body.append(h,p,play);row.append(link,body);return row;}));}
+select.onchange=()=>{lang=select.value;try{localStorage.setItem("grandworks.locale",lang);}catch{}draw();};draw();
+});</script></body></html>
