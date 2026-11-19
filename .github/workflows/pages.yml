@@ -1,0 +1,37 @@
+name: Build and publish studio
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: grand-works-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/works.test.mjs
+      - run: node studio.mjs check
+      - id: game
+        run: echo "path=$(node studio.mjs build)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ steps.game.outputs.path }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.ship.outputs.page_url }}
+    steps:
+      - id: ship
+        uses: actions/deploy-pages@v4
