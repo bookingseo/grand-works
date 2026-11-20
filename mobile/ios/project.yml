@@ -1,0 +1,46 @@
+name: GrandWorks
+options:
+  deploymentTarget:
+    iOS: '16.0'
+targets:
+  GrandWorks:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - path: Bundle/www
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: studio.grandworks.mobile
+        PRODUCT_NAME: GrandWorks
+        MARKETING_VERSION: '1.0'
+        CURRENT_PROJECT_VERSION: '1'
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Grand Works
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_VERSION: '5.0'
+        TARGETED_DEVICE_FAMILY: '1,2'
+  WorkshopUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: GrandWorks
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: studio.grandworks.mobile.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: GrandWorks
+        SWIFT_VERSION: '5.0'
+schemes:
+  GrandWorks:
+    build:
+      targets:
+        GrandWorks: all
+    test:
+      targets: [WorkshopUITests]

@@ -1,2 +1,5 @@
 out/
 .DS_Store
+.mobile-signing/
+mobile/ios/Bundle/
+mobile/ios/GrandWorks.xcodeproj/

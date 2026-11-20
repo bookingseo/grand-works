@@ -21,11 +21,34 @@ function save(){
   catch{saveFailed=true;}
   $("status").textContent=saveFailed?t().noSave:t().saved;
 }
-function paint(frac=1){YardArt.yard(ctx,state,selected,state.tick+frac,moves,frac);}
+const phone = matchMedia("(max-width:790px)");
+const touchInput = matchMedia("(pointer:coarse)");
+function paint(frac=1){
+  ctx.save();
+  if(phone.matches)ctx.translate(-55,-12);
+  YardArt.yard(ctx,state,selected,state.tick+frac,moves,frac);
+  if(phone.matches)YardArt.mark(ctx,selected,coord(selected));
+  ctx.restore();
+}
+function resizeYard(){
+  canvas.width=phone.matches?860:1000;
+  canvas.height=phone.matches?443:520;
+  paint();
+}
+phone.addEventListener("change", resizeYard);
+$("zoom").onclick=()=>{
+  const yard=$("yard-window"), zoomed=yard.classList.toggle("zoomed");
+  $("zoom").setAttribute("aria-pressed",String(zoomed));
+  yard.scrollLeft=(yard.scrollWidth-yard.clientWidth)/2;
+  refresh();
+};
 function refresh(){
   const s=t(),j=state.job,order=IronShift.jobs[j];
   document.documentElement.lang=lang;document.title=s.title+" · "+s.studio;$("lang").value=lang;
   for(const id of ["studio","title","help","restart","cancel","reset","prompt","apply"])$(id).textContent=s[id];
+  const zoomed=$("yard-window").classList.contains("zoomed");
+  $("zoom").textContent=lang==="vi"?(zoomed?"Thu nhỏ":"Phóng to"):(zoomed?"Zoom out":"Zoom in");
+  if(touchInput.matches)$("help").textContent=lang==="vi"?"Chọn thiết bị, rồi chạm ô đất để xây. Khi phóng to, vuốt ngang để xem sân. Có thể chọn tọa độ rồi bấm Đặt tại ô.":"Pick a tool and tap a plot to build. Zoom in and swipe across the yard, or pick a coordinate and tap Build here.";
   $("shift").textContent=order?s.shift+" 0"+(j+1)+" / 03":s.sandbox;
   $("orderLabel").textContent=s.order;$("order").textContent=s.names[j];$("brief").textContent=s.brief[j];
   $("count").textContent=order?state.count+"/"+order.count:state.shipped;$("unit").textContent=s.kinds[j];
@@ -68,7 +91,7 @@ $("power").onclick=()=>toggle(!running);$("turn").onclick=rotate;
 $("speed").onclick=()=>{speed=speed===1?3:1;refresh();};
 $("lang").onchange=e=>{lang=e.target.value;updateLanguageUrl();refresh();save();};
 canvas.onclick=e=>{
-  const rect=canvas.getBoundingClientRect(),i=YardArt.hit((e.clientX-rect.left)*1000/rect.width,(e.clientY-rect.top)*520/rect.height);
+  const rect=canvas.getBoundingClientRect(),i=YardArt.hit((e.clientX-rect.left)*canvas.width/rect.width+(phone.matches?55:0),(e.clientY-rect.top)*canvas.height/rect.height+(phone.matches?12:0));
   if(i>=0)build(i);
 };
 canvas.onkeydown=e=>{
@@ -79,7 +102,8 @@ canvas.onkeydown=e=>{
 document.addEventListener("keydown",e=>{if(!e.metaKey&&!e.ctrlKey&&!e.altKey&&e.key.toLowerCase()==="r"&&!$("confirm").open&&e.target.tagName!=="SELECT")rotate();});
 $("restart").onclick=()=>$("confirm").showModal();$("confirm").onclose=()=>{if($("confirm").returnValue==="reset"){state=IronShift.fresh();selected=17;dir=0;tool="belt";toggle(false);}};
 window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",()=>{if(document.hidden && running)toggle(false);});
-refresh();paint();
+window.addEventListener("workshop-pause",()=>toggle(false));
+refresh();resizeYard();
 
 function updateLanguageUrl(){
   if(location.protocol==="file:"||!location.search)return;

@@ -140,6 +140,16 @@ const YardArt = (() => {
       line(c,[x-6,y],[x+6,y],"#879782",1);line(c,[x,y-6],[x,y+6],"#879782",1);
     }
   }
+  function mark(c, index, label) {
+    const x = index % 7, y = Math.floor(index / 7);
+    const [u,v] = project(x, y);
+    c.save();
+    c.strokeStyle = "#a63b21"; c.lineWidth = 4;
+    c.beginPath(); c.moveTo(u, v-27); c.lineTo(u+63,v); c.lineTo(u,v+27); c.lineTo(u-63,v); c.closePath(); c.stroke();
+    c.fillStyle = "#243c3a"; c.fillRect(u-22, v+21, 44, 27);
+    c.font = "bold 21px monospace"; c.textAlign = "center"; c.fillStyle = "#fff1c8"; c.fillText(label,u,v+42);
+    c.restore();
+  }
   function hit(u,v){
     const a=(u-ox)/wx,b=(v-oy)/wy,x=Math.round((a+b)/2),y=Math.round((b-a)/2);
     return x>=0&&x<7&&y>=0&&y<5?y*7+x:-1;
@@ -148,5 +158,5 @@ const YardArt = (() => {
     const c=canvas.getContext("2d");canvas.width=110;canvas.height=90;
     c.setTransform(.88,0,0,.88,55-ox*.88,66-oy*.88);asset(c,type,0,0);
   }
-  return {yard,hit,preview};
+  return {yard,hit,preview,mark};
 })();

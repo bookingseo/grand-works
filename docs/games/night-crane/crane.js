@@ -15,6 +15,7 @@ function save(){try{localStorage.setItem("grandworks.crane.v1",JSON.stringify({b
 function labels(){
   const s=t();document.documentElement.lang=lang;document.title=s.title+" · "+s.studio;$("lang").value=lang;
   for(const id of ["studio","title","help"])$(id).textContent=s[id];
+  if(matchMedia("(pointer:coarse)").matches)$("help").textContent=lang==="vi"?"Chạm khi kiện hàng ở ngay trên vạch vàng. Xếp đủ sáu kiện trước khi trượt ba lần.":"Tap when the crate is above the yellow mark. Stack six loads before three misses.";
   $("best").textContent=s.best+" · "+best+"/6";$("score").textContent=s.load+" "+stack.length+"/6   ·   "+s.miss+" "+(3-misses);
   $("drop").textContent=done()?s.restart:fall?s.fall:s.drop;$("drop").disabled=!!fall;
   $("message").textContent=msg?s[msg]:"";canvas.setAttribute("aria-label",s.title+" · "+$("score").textContent);
