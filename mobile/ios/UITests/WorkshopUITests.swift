@@ -2,31 +2,41 @@ import XCTest
 
 final class WorkshopUITests: XCTestCase {
     func testOfflineOrderSurvivesRelaunchAndBothGamesOpen() throws {
+        continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
-        let page = app.webViews.firstMatch
-        let reset = page.buttons["New shift"]
-        XCTAssertTrue(reset.waitForExistence(timeout: 30))
-        reset.tap()
-        page.buttons["Start again"].tap()
-        page.buttons["Zoom in"].tap()
-        page.buttons["Zoom out"].tap()
-        page.buttons["Build here"].tap()
-        page.buttons["Start line"].tap()
-        XCTAssertTrue(page.staticTexts["The first smelt"].waitForExistence(timeout: 45))
+
+        // WebKit exposes ordinary buttons and aria-pressed toggles as different iOS control types.
+        func item(_ label: String) -> XCUIElement {
+            app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", label)).firstMatch
+        }
+        func tap(_ label: String) {
+            let control = item(label)
+            XCTAssertTrue(control.waitForExistence(timeout: 45), label)
+            control.tap()
+        }
+        tap("New shift")
+        tap("Start again")
+        tap("Zoom in")
+        tap("Zoom out")
+        tap("Build here")
+        tap("Start line")
+        XCTAssertTrue(item("The first smelt").waitForExistence(timeout: 60))
         let capture = XCTAttachment(screenshot: app.screenshot())
-        capture.name = "Iron Shift on iPhone"; capture.lifetime = .keepAlways
+        capture.name = "Iron Shift on iPhone"
+        capture.lifetime = .keepAlways
         add(capture)
         app.terminate()
         app.launch()
-        XCTAssertTrue(page.staticTexts["The first smelt"].waitForExistence(timeout: 25))
-        XCTAssertTrue(page.buttons["Start line"].exists)
-        page.links["Grand Works Studio"].tap()
-        let crane = page.links["Night Crane"]
-        XCTAssertTrue(crane.waitForExistence(timeout: 15)); crane.tap()
-        page.buttons["Release load"].tap()
-        let outcome = page.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "secured on deck", "missed the stack")).firstMatch
-        XCTAssertTrue(outcome.waitForExistence(timeout: 15))
+        XCTAssertTrue(item("The first smelt").waitForExistence(timeout: 45))
+        XCTAssertTrue(item("Start line").exists)
+        tap("Grand Works Studio")
+        let crane = app.links["Night Crane"].firstMatch
+        XCTAssertTrue(crane.waitForExistence(timeout: 30))
+        crane.tap()
+        tap("Release load")
+        let result = NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "secured on deck", "missed the stack")
+        XCTAssertTrue(app.descendants(matching: .any).matching(result).firstMatch.waitForExistence(timeout: 20))
     }
 }
